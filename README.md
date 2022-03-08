@@ -1,3 +1,5 @@
+# About me
+
 Hello! 
 
 I am Taha & in this doc you can learn a bit more about me and my intrests! I am currently working on getting my masters from Columbia in Data Science. 
