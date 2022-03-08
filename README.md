@@ -11,7 +11,3 @@ Directors and VPs across strategic priorties to better support our advertisers.
 Before my time at Google I worked as a Fulbright Scholar in Malaysia - teaching english and researching their national vocational education program.
 
 My current focus in investigating the crypto-twitter space to more structurally understand crypto communities using network analysis and NPL.
-
-<br />
-+[title](https://www.linkedin.com/in/taha-saeed-84062446/)
-
