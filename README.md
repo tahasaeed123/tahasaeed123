@@ -13,4 +13,5 @@ Before my time at Google I worked as a Fulbright Scholar in Malaysia - teaching 
 My current focus in investigating the crypto-twitter space to more structurally understand crypto communities using network analysis and NPL.
 
 <br />
+[title](https://www.linkedin.com/in/taha-saeed-84062446/)
 You can find me on [![Twitter][1.2]][1], or on [![LinkedIn][3.2]][3].
