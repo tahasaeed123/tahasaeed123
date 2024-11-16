@@ -1,0 +1,89 @@
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Cell Tracer')
+    .addItem('Trace Selected Cell to Root', 'traceSelectedCellToRoot')
+    .addToUi();
+}
+
+function traceSelectedCellToRoot() {
+  const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = activeSpreadsheet.getActiveSheet();
+  const cell = sheet.getActiveCell();
+  const fullTrace = {};
+
+  recursiveTrace(activeSpreadsheet, sheet.getName(), cell.getA1Notation(), fullTrace);
+
+  outputTraceToSheet(fullTrace);
+}
+
+function recursiveTrace(activeSpreadsheet, sheetName, cellNotation, traceRecord) {
+  const sheet = activeSpreadsheet.getSheetByName(sheetName);
+  const cell = sheet.getRange(cellNotation);
+  const formula = cell.getFormula();
+  const cellIdentifier = sheetName + '!' + cellNotation;
+
+  if (!formula) {
+    traceRecord[cellIdentifier] = "Hard-coded value";
+    return;
+  }
+
+  const precedents = tracePrecedents(activeSpreadsheet, formula, sheetName);
+  traceRecord[cellIdentifier] = precedents;
+
+  precedents.forEach(function(precedent) {
+    const [precedentSheetName, precedentCellNotation] = parseCellNotation(precedent);
+    if (!traceRecord[precedentSheetName + '!' + precedentCellNotation]) {
+      recursiveTrace(activeSpreadsheet, precedentSheetName, precedentCellNotation, traceRecord);
+    }
+  });
+}
+
+function tracePrecedents(activeSpreadsheet, formula, defaultSheetName) {
+  const rangeRegex = /(?:'([^']*)'!|([\w]*)!)?([A-Z]+\d+(:[A-Z]+\d+)?)/g;
+  let match;
+  let precedents = [];
+
+  while (match = rangeRegex.exec(formula)) {
+    const sheetName = match[1] || match[2] || defaultSheetName;
+    const cellRange = match[3];
+    if (cellRange.includes(':')) {
+      precedents.push(...expandRange(activeSpreadsheet, sheetName, cellRange));
+    } else {
+      precedents.push(sheetName + '!' + cellRange);
+    }
+  }
+
+  return precedents;
+}
+
+function expandRange(activeSpreadsheet, sheetName, range) {
+  const sheet = activeSpreadsheet.getSheetByName(sheetName);
+  const rangeObject = sheet.getRange(range);
+  let cells = [];
+  for (let i = rangeObject.getRow(); i <= rangeObject.getLastRow(); i++) {
+    for (let j = rangeObject.getColumn(); j <= rangeObject.getLastColumn(); j++) {
+      cells.push(sheetName + '!' + sheet.getRange(i, j).getA1Notation());
+    }
+  }
+  return cells;
+}
+
+function parseCellNotation(cellNotation) {
+  const parts = cellNotation.split('!');
+  if (parts.length === 1) {
+    return [SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getName(), parts[0]];
+  }
+  return parts;
+}
+
+function outputTraceToSheet(traceRecord) {
+  const outputSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trace Output') || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Trace Output');
+  outputSheet.clear(); // Clear existing data
+  let row = 1;
+  
+  for (let key in traceRecord) {
+    outputSheet.getRange(row, 1).setValue(key);
+    outputSheet.getRange(row, 2).setValue(Array.isArray(traceRecord[key]) ? traceRecord[key].join(', ') : traceRecord[key]);
+    row++;
+  }
+}
